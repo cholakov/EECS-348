@@ -1,4 +1,4 @@
-# Name: Andrew Kluge (ajk386), 
+# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917)
 # Date: May 22, 2015
 # Description:
 #
