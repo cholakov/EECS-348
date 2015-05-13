@@ -1,5 +1,5 @@
-# Name: 
-# Date:
+# Name: Andrew Kluge (ajk386), 
+# Date: May 22, 2015
 # Description:
 #
 #
