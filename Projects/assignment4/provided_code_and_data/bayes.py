@@ -13,6 +13,13 @@ class Bayes_Classifier:
       cache of a trained classifier has been stored, it loads this cache.  Otherwise, 
       the system will proceed through training.  After running this method, the classifier 
       is ready to classify input text."""
+         # If the dictionaries exist
+         if (os.path.isfile(positive) and os.path.isfile(negative)):
+            self.positive = self.loadFile("positive")
+            self.negative = self.loadFile("negative")
+         else: 
+            self.positive = {}
+            self.negative = {}
 
    def train(self):   
       """Trains the Naive Bayes Sentiment Classifier."""
