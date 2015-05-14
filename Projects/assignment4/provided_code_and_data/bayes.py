@@ -17,10 +17,14 @@ class Bayes_Classifier:
       if (os.path.isfile("positive") and os.path.isfile("negative")):
          self.positive = self.loadFile("positive")
          self.negative = self.loadFile("negative")
+         print "The files exist and won't be recalculated."
       else: 
+         print "No existing dictionaries found."
          self.positive = {}
          self.negative = {}
          self.train()
+         print "Dictionaries generated."
+
 
    def train(self):   
       """Trains the Naive Bayes Sentiment Classifier."""
