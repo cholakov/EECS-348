@@ -23,6 +23,17 @@ class Bayes_Classifier:
 
    def train(self):   
       """Trains the Naive Bayes Sentiment Classifier."""
+
+        # List of filenames stored in IFileList 
+      IFileList = []
+      for fileObj in os.walk("movies_reviews/"):
+         IFileList = fileObj[2]
+         break 
+
+      for fileName in IFileList: 
+         a = fileName 
+         self.tokenize(a) 
+      return a 
     
    def classify(self, sText):
       """Given a target string sText, this function returns the most likely document
