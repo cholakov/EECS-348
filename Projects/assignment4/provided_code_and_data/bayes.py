@@ -13,27 +13,51 @@ class Bayes_Classifier:
       cache of a trained classifier has been stored, it loads this cache.  Otherwise, 
       the system will proceed through training.  After running this method, the classifier 
       is ready to classify input text."""
-         # If the dictionaries exist
-         if (os.path.isfile(positive) and os.path.isfile(negative)):
-            self.positive = self.loadFile("positive")
-            self.negative = self.loadFile("negative")
-         else: 
-            self.positive = {}
-            self.negative = {}
+      # If the dictionaries exist, load them
+      if (os.path.isfile("positive") and os.path.isfile("negative")):
+         self.positive = self.loadFile("positive")
+         self.negative = self.loadFile("negative")
+      else: 
+         self.positive = {}
+         self.negative = {}
+         self.train()
 
    def train(self):   
       """Trains the Naive Bayes Sentiment Classifier."""
 
-        # List of filenames stored in IFileList 
+      # Create a list IFileList which contains the file names of all movie reviews
       IFileList = []
       for fileObj in os.walk("movies_reviews/"):
          IFileList = fileObj[2]
-         break 
+         break
 
+      # For each file
       for fileName in IFileList: 
-         a = fileName 
-         self.tokenize(a) 
-      return a 
+
+         def updateFrequency(dictionary, word):
+            """ Increments the frequency of the provided word in the provided dictionary. """
+            # If word is alrady in dictionary, increment
+            if (dictionary.has_key(word)):   
+               dictionary[word] += 1
+            else: # If not, initialize count to 1
+               dictionary[word] = 1
+
+         # Load content of review
+         content = self.loadFile("movies_reviews/" + fileName)
+         # Tokenize content
+         tokenized = self.tokenize(content)
+
+         # Determine the mood of the review.
+         for word in tokenized:
+            if (fileName[7] == "1"):
+               updateFrequency(self.negative, word)
+            elif (fileName[7] == "5"):
+               updateFrequency(self.positive, word)
+
+      # Save the dictionaries to disk
+      self.save(self.negative, "negative")
+      self.save(self.positive, "postive")
+         
     
    def classify(self, sText):
       """Given a target string sText, this function returns the most likely document
@@ -42,7 +66,6 @@ class Bayes_Classifier:
 
    def loadFile(self, sFilename):
       """Given a file name, return the contents of the file as a string."""
-
       f = open(sFilename, "r")
       sTxt = f.read()
       f.close()
@@ -50,7 +73,6 @@ class Bayes_Classifier:
    
    def save(self, dObj, sFilename):
       """Given an object and a file name, write the object to the file using pickle."""
-
       f = open(sFilename, "w")
       p = pickle.Pickler(f)
       p.dump(dObj)
