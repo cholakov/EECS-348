@@ -64,6 +64,40 @@ class Bayes_Classifier:
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
 
+       # Tokenize sText (the string to be classified)
+      words = sText.tokenize
+
+      total_probability = 1
+
+      # a = a list of all the values in the positive dictionary (if 0'th index is great
+        # and great occurs 7 times, the 0'th index of a = 8)
+      a = self.positive.values()
+
+      total_words_in_positive = sum(a)
+
+
+      #run Bayes rule for each element of "words"
+
+      # Iterates for each word in sText (aka the tokenized sText array "words")
+      for i in range(len(words)):
+        if (self.positive.has_key(words[i])):  # need to check if the i'th index in words 
+                                                   # is located in the positive dictionary
+
+            # Find document is positive given that probability
+            # 
+            total_probability = 1 * (self.positive[words[i]] / total_words_in_positive
+        else: 
+            continue
+
+    if total_probability > .5:
+        return positive
+    elif total_probability < .5:
+        return negative 
+    elif total_probability = .5:
+        return neutral
+      
+      # Note:  Access how many times great appears by self.positive[great]
+
    def loadFile(self, sFilename):
       """Given a file name, return the contents of the file as a string."""
       f = open(sFilename, "r")
