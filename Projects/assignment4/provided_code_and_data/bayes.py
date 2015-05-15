@@ -60,7 +60,7 @@ class Bayes_Classifier:
 
       # Save the dictionaries to disk
       self.save(self.negative, "negative")
-      self.save(self.positive, "postive")
+      self.save(self.positive, "positive")
          
     
    def classify(self, sText):
@@ -71,33 +71,34 @@ class Bayes_Classifier:
        # Tokenize sText (the string to be classified)
       words = sText.tokenize
 
-      total_probability = 1
+      negative_probability = 1
+      positive_probability = 1 
 
-      # a = a list of all the values in the positive dictionary (if 0'th index is great
-        # and great occurs 7 times, the 0'th index of a = 8)
-      a = self.positive.values()
+      # list of all the values in the positive dictionary (if 0'th index is "great"
+        # and "great" occurs 7 times, the 0'th index of a = 8)
+      pos_list = self.positive.values()
+      neg_list = self.negative.values()
 
-      total_words_in_positive = sum(a)
+      total_words_in_positive = sum(pos_list)
+      total_words_in_negative = sum(neg_list) 
 
 
       #run Bayes rule for each element of "words"
 
       # Iterates for each word in sText (aka the tokenized sText array "words")
       for i in range(len(words)):
-        if (self.positive.has_key(words[i])):  # need to check if the i'th index in words 
+         if (self.positive.has_key(words[i])):  # need to check if the i'th index in words 
                                                    # is located in the positive dictionary
 
             # Find document is positive given that probability
             # 
-            total_probability = 1 * (self.positive[words[i]] / total_words_in_positive
-        else: 
-            continue
+            total_probability = 1 * (self.positive[words[i]] / total_words_in_positive)
 
-    if total_probability > .5:
-        return positive
-    elif total_probability < .5:
-        return negative 
-    elif total_probability = .5:
+      if (total_probability > .5):
+         return positive
+      elif (total_probability < .5):
+         return negative 
+      elif (total_probability == .5):
         return neutral
       
       # Note:  Access how many times great appears by self.positive[great]
