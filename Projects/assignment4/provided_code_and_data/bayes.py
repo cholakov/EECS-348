@@ -92,13 +92,23 @@ class Bayes_Classifier:
 
             # Find document is positive given that probability
             # 
-            total_probability = 1 * (self.positive[words[i]] / total_words_in_positive)
+            positive_probability = 1 * (self.positive[words[i]] / total_words_in_positive)
 
-      if (total_probability > .5):
+      for i in range(len(words)):
+         if (self.negative.has_key(words[i])):  # need to check if the i'th index in words 
+                                                   # is located in the positive dictionary
+
+            # Find document is positive given that probability
+            # 
+            negative_probability = 1 * (self.negative[words[i]] / total_words_in_negative)
+
+      neutral_probability = abs(positive_probability-negative_probability)
+      a = max(positive_probability, negative_probability, neutral_probability)
+      if (a == positive_probability):
          return positive
-      elif (total_probability < .5):
+      elif (a == negative_probability):
          return negative 
-      elif (total_probability == .5):
+      elif (a == neutral_probability):
         return neutral
       
       # Note:  Access how many times great appears by self.positive[great]
