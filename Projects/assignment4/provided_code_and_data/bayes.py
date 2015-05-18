@@ -15,8 +15,8 @@ class Bayes_Classifier:
       is ready to classify input text."""
       # If the dictionaries exist, load them
       if (os.path.isfile("positive") and os.path.isfile("negative")):
-         self.positive = self.loadFile("positive")
-         self.negative = self.loadFile("negative")
+         self.positive = self.load("positive")
+         self.negative = self.load("negative")
          print "The dictionaries exist and won't be recalculated."
       else: 
          print "No existing dictionaries found."
@@ -68,7 +68,7 @@ class Bayes_Classifier:
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
 
-            # Tokenize sText (the string to be classified)
+      # Tokenize sText (the string to be classified)
       words = self.tokenize(sText)
 
       negative_probability = 1
