@@ -68,7 +68,7 @@ class Bayes_Classifier:
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
 
-      # Tokenize sText (the string to be classified)
+            # Tokenize sText (the string to be classified)
       words = self.tokenize(sText)
 
       negative_probability = 1
@@ -92,26 +92,19 @@ class Bayes_Classifier:
 
             # Find document is positive given that probability
             # 
-            positive_probability = 1 * (self.positive[words[i]] / total_words_in_positive)
 
-      for i in range(len(words)):
-         if (self.negative.has_key(words[i])):  # need to check if the i'th index in words 
-                                                   # is located in the positive dictionary
+            positive_probability *= (self.positive[words[i]] / total_words_in_positive)    #####
+         else:
+            negative_probability *= (self.negative[words[i]] / total_words_in_negative) 
 
-            # Find document is positive given that probability
-            # 
-            negative_probability = 1 * (self.negative[words[i]] / total_words_in_negative)
+      difference = positive_probability - negative_probability 
 
-      neutral_probability = abs(positive_probability-negative_probability)
-      a = max(positive_probability, negative_probability, neutral_probability)
-      if (a == positive_probability):
-         return positive
-      elif (a == negative_probability):
-         return negative 
-      elif (a == neutral_probability):
-        return neutral
-      
-      # Note:  Access how many times great appears by self.positive[great]
+      if math.fabs(difference) <= 0.1: 
+         return "neutral"
+      elif difference > 0: 
+         return "positive"
+      else: 
+         return "negative"
 
    def loadFile(self, sFilename):
       """Given a file name, return the contents of the file as a string."""
