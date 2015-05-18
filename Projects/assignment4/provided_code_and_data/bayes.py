@@ -17,7 +17,7 @@ class Bayes_Classifier:
       if (os.path.isfile("positive") and os.path.isfile("negative")):
          self.positive = self.loadFile("positive")
          self.negative = self.loadFile("negative")
-         print "The files exist and won't be recalculated."
+         print "The dictionaries exist and won't be recalculated."
       else: 
          print "No existing dictionaries found."
          self.positive = {}
@@ -64,12 +64,12 @@ class Bayes_Classifier:
          
     
    def classify(self, sText):
-      """Given a target string sText, this function returns the most likely document
+      """Given a target string sText, the function returns the most likely document
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
 
-       # Tokenize sText (the string to be classified)
-      words = sText.tokenize
+      # Tokenize sText (the string to be classified)
+      words = self.tokenize(sText)
 
       negative_probability = 1
       positive_probability = 1 
