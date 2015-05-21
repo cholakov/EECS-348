@@ -103,7 +103,7 @@ class Bayes_Classifier:
 
       print diff
 
-      if math.fabs(difference) <= 0.1: 
+      if math.fabs(difference) <= 0.1: //shouldn't this be diff instead of difference?
          return "neutral"
       if diff > 0: 
          return "positive"
