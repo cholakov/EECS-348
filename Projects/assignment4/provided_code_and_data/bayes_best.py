@@ -153,4 +153,11 @@ class Bayes_Classifier:
       if sToken != "":
          lTokens.append(sToken)
 
-      return lTokens
+
+      bigrams = []
+      for y in range(len(lTokens) - 1):
+         a = lTokens[y]
+         b = lTokens[y + 1]
+         bigrams[y] = a + b
+
+      return bigrams
