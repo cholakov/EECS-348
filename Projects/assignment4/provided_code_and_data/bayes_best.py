@@ -1,4 +1,3 @@
-# The best Bayes Classifier that we could come up with
 # Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917)
 # Date: May 22, 2015
 # Description:
@@ -16,8 +15,8 @@ class Bayes_Classifier:
       is ready to classify input text."""
       # If the dictionaries exist, load them
       if (os.path.isfile("positive") and os.path.isfile("negative")):
-         self.positive = self.loadFile("positive")
-         self.negative = self.loadFile("negative")
+         self.positive = self.load("positive")
+         self.negative = self.load("negative")
          print "The dictionaries exist and won't be recalculated."
       else: 
          print "No existing dictionaries found."
@@ -69,43 +68,48 @@ class Bayes_Classifier:
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
 
-            # Tokenize sText (the string to be classified)
-      words = self.tokenize(sText)
-
       negative_probability = 1
       positive_probability = 1 
 
-      # list of all the values in the positive dictionary (if 0'th index is "great"
-        # and "great" occurs 7 times, the 0'th index of a = 8)
+      # Tokenize sText
+      tokenized = self.tokenize(sText)
+
+      # Get a list of all values in a dictionay
       pos_list = self.positive.values()
       neg_list = self.negative.values()
 
+      # Sum over the list of values
       total_words_in_positive = sum(pos_list)
       total_words_in_negative = sum(neg_list) 
 
 
-      #run Bayes rule for each element of "words"
+      # Run Bayes Classifier
 
-      # Iterates for each word in sText (aka the tokenized sText array "words")
-      for i in range(len(words)):
-         if (self.positive.has_key(words[i])):  # need to check if the i'th index in words 
-                                                   # is located in the positive dictionary
+      i = 0
+      j = 0
+      
+      for word in tokenized:   # For each word in sText  
+         if (self.positive.has_key(word)):  # Is word in positive dict?
+            positive_probability += math.log(((self.positive[word] + 1.0) / total_words_in_positive))
+            i += 1
+         if (self.negative.has_key(word)):  # Is word in negative dict?
+            negative_probability += math.log(((self.negative[word] + 1.0) / total_words_in_negative))
+            j += 1
 
-            # Find document is positive given that probability
-            # 
+      positive_probability = positive_probability / i
+      negative_probability = negative_probability / j
 
-            positive_probability *= (self.positive[words[i]] / total_words_in_positive)    #####
-         else:
-            negative_probability *= (self.negative[words[i]] / total_words_in_negative) 
+      diff = positive_probability - negative_probability 
 
-      difference = positive_probability - negative_probability 
+      print diff
 
       if math.fabs(difference) <= 0.1: 
          return "neutral"
-      elif difference > 0: 
+      if diff > 0: 
          return "positive"
       else: 
          return "negative"
+
 
    def loadFile(self, sFilename):
       """Given a file name, return the contents of the file as a string."""
