@@ -70,8 +70,8 @@ class Best_Bayes_Classifier:
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
 
-      negative_probability = 1
-      positive_probability = 1 
+      negative_probability = 0
+      positive_probability = 0 
 
       # Tokenize sText
       tokenized = self.tokenize(sText)
@@ -102,7 +102,7 @@ class Best_Bayes_Classifier:
          i = 1
       if j == 0:
          j = 1 
-      
+
       positive_probability = positive_probability / i
       negative_probability = negative_probability / j
 
