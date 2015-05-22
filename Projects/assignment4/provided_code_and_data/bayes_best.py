@@ -1,6 +1,6 @@
-# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Richard Gates Porter (rgp633)
+# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Sophia Lou (sll411), Richard Gates Porter (rgp633)
 # Date: May 22, 2015
-# Description:
+# Description: Better Bayes Classifier, using positive and negative dictionaries with bigrams
 #
 #
 
@@ -103,7 +103,7 @@ class Bayes_Classifier:
 
       print diff
 
-      if math.fabs(difference) <= 0.1: 
+      if math.fabs(diff) <= 0.1: 
          return "neutral"
       if diff > 0: 
          return "positive"
