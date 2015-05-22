@@ -1,4 +1,4 @@
-# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917)
+# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Richard Gates Porter (rgp633)
 # Date: May 22, 2015
 # Description:
 #
