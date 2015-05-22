@@ -6,7 +6,7 @@
 
 import math, os, pickle, re
 
-class Bayes_Classifier:
+class Best_Bayes_Classifier:
 
    def __init__(self):
       """This method initializes and trains the Naive Bayes Sentiment Classifier.  If a 
@@ -14,15 +14,17 @@ class Bayes_Classifier:
       the system will proceed through training.  After running this method, the classifier 
       is ready to classify input text."""
       # If the dictionaries exist, load them
-      if (os.path.isfile("positive") and os.path.isfile("negative")):
-         self.positive = self.load("positive")
-         self.negative = self.load("negative")
+      if (os.path.isfile("BigramsPositive") and os.path.isfile("BigramsNegative")):
+         self.positive = self.load("BigramsPositive")
+         self.negative = self.load("BigramsNegative")
          print "The dictionaries exist and won't be recalculated."
       else: 
          print "No existing dictionaries found."
          self.positive = {}
          self.negative = {}
          self.train()
+         self.positive = self.load("BigramsPositive")
+         self.negative = self.load("BigramsNegative")
          print "Dictionaries generated."
 
 
@@ -59,8 +61,8 @@ class Bayes_Classifier:
                updateFrequency(self.positive, word)
 
       # Save the dictionaries to disk
-      self.save(self.negative, "negative")
-      self.save(self.positive, "positive")
+      self.save(self.negative, "BigramsNegative")
+      self.save(self.positive, "BigramsPositive")
          
     
    def classify(self, sText):
@@ -96,6 +98,11 @@ class Bayes_Classifier:
             negative_probability += math.log(((self.negative[word] + 1.0) / total_words_in_negative))
             j += 1
 
+      if i == 0:
+         i = 1
+      if j == 0:
+         j = 1 
+      
       positive_probability = positive_probability / i
       negative_probability = negative_probability / j
 
@@ -153,11 +160,11 @@ class Bayes_Classifier:
       if sToken != "":
          lTokens.append(sToken)
 
+      biTokens = []
 
-      bigrams = []
       for y in range(len(lTokens) - 1):
          a = lTokens[y]
          b = lTokens[y + 1]
-         bigrams[y] = a + b
+         biTokens.append(a + ' ' + b)
 
-      return bigrams
+      return biTokens 
