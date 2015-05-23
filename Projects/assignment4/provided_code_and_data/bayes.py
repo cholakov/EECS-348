@@ -1,6 +1,6 @@
-# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Richard Gates Porter (rgp633)
+# Name: Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Sophia Lou (sll411), Richard Gates Porter (rgp633)
 # Date: May 22, 2015
-# Description:
+# Description: Bayes Classifier to determine whether a given review is positive or negative
 #
 #
 
@@ -67,9 +67,9 @@ class Bayes_Classifier:
       """Given a target string sText, the function returns the most likely document
       class to which the target string belongs (i.e., positive, negative or neutral).
       """
-
-      negative_probability = 1
-      positive_probability = 1 
+      # initialization 
+      negative_probability = 0
+      positive_probability = 0 
 
       # Tokenize sText
       tokenized = self.tokenize(sText)
@@ -84,6 +84,7 @@ class Bayes_Classifier:
 
 
       # Run Bayes Classifier
+      # Fixes undewflow and uses add 1 smoothing 
 
       i = 0
       j = 0
@@ -96,19 +97,24 @@ class Bayes_Classifier:
             negative_probability += math.log(((self.negative[word] + 1.0) / total_words_in_negative))
             j += 1
 
+      if i == 0:
+         i = 1
+      if j == 0:
+         j = 1 
+
+      # Normalize for the length of the review 
       positive_probability = positive_probability / i
       negative_probability = negative_probability / j
 
-      diff = positive_probability - negative_probability 
+      diff = positive_probability - negative_probability
+      print diff  
 
-      print diff
-
-      if math.fabs(difference) <= 0.1: //shouldn't this be diff instead of difference?
-         return "neutral"
+      if math.fabs(diff) <= 0.1: 
+         return "neutral" 
       if diff > 0: 
          return "positive"
       else: 
-         return "negative"
+         return "negative" 
 
 
    def loadFile(self, sFilename):
