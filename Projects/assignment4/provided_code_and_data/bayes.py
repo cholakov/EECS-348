@@ -201,6 +201,9 @@ class Bayes_Classifier:
 
       diff = positive_probability - negative_probability 
 
+      print positive_probability
+      print negative_probability
+
       if math.fabs(diff) <= 0.01: 
          return "neutral" 
       if diff > 0: 

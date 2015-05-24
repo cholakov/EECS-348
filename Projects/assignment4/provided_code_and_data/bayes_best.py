@@ -140,7 +140,7 @@ class Best_Bayes_Classifier:
       fMeasure_avg = []
 
       # Run cross-validation 10 times
-      for num in range(1,11):
+      for num in range(1,2):
 
          # Divide the files of the movie reviews into training and testing sets
          testData = random.sample(set(self.IFileList), len(self.IFileList)/10)
@@ -196,6 +196,10 @@ class Best_Bayes_Classifier:
          recall_avg.extend([Recall_Pos, Recall_Neg])
          fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
 
+         print "Cross Validation #" + str(num)
+         print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
+         print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+
       # Average over all values
       precision = sum(precision_avg) / len(precision_avg)
       recall = sum(recall_avg) / len(recall_avg)
@@ -212,10 +216,7 @@ class Best_Bayes_Classifier:
    def classify(self, sText):
       """Given a target string sText, the function returns the most likely document
       class to which the target string belongs (i.e., positive, negative or neutral).
-      """
-
-      negative_probability = 0
-      positive_probability = 0 
+      """ 
 
       # Tokenize sText
       unigrams, bigrams = self.tokenize(sText)
@@ -236,13 +237,15 @@ class Best_Bayes_Classifier:
 
       i = 0
       j = 0
+      uni_neg_prob = 0
+      uni_pos_prob = 0
       
       for word in unigrams:   # For each word in sText  
          if (self.positiveUnigrams.has_key(word)):  # Is word in positive dict?
-            positive_probability += math.log(((self.positiveUnigrams[word] + 1.0) / total_words_in_positiveUni))
+            uni_pos_prob += math.log(((self.positiveUnigrams[word] + 1.0) / total_words_in_positiveUni))
             i += 1
          if (self.negativeUnigrams.has_key(word)):  # Is word in negative dict?
-            negative_probability += math.log(((self.negativeUnigrams[word] + 1.0) / total_words_in_negativeUni))
+            uni_neg_prob += math.log(((self.negativeUnigrams[word] + 1.0) / total_words_in_negativeUni))
             j += 1
 
       if i == 0:
@@ -250,21 +253,21 @@ class Best_Bayes_Classifier:
       if j == 0:
          j = 1 
 
-      positive_probability = positive_probability / i
-      negative_probability = negative_probability / j
+      uni_pos_prob = uni_pos_prob / i
+      uni_neg_prob = uni_neg_prob / j
 
       # Run Bayes Classifier for Bigrams
       m = 0
       n = 0 
-      pos_prob = 0
-      neg_prob = 0 
+      bi_pos_prob = 0
+      bi_neg_prob = 0 
 
       for word in bigrams: # for each pair of words 
          if (self.positiveBigrams.has_key(word)):
-            pos_prob += math.log(((self.positiveBigrams[word] + 1.0) / total_words_in_positiveBi))
+            bi_pos_prob += math.log(((self.positiveBigrams[word] + 1.0) / total_words_in_positiveBi))
             m += 1
          if (self.negativeBigrams.has_key(word)):
-            neg_prob += math.log(((self.negativeBigrams[word] + 1.0) / total_words_in_negativeBi))
+            bi_neg_prob += math.log(((self.negativeBigrams[word] + 1.0) / total_words_in_negativeBi))
             n += 1 
 
       if m == 0:
@@ -272,10 +275,15 @@ class Best_Bayes_Classifier:
       if n == 0:
          n = 1
 
-      positive_probability += (pos_prob / m)
-      negative_probability += (neg_prob / n)
+      bi_pos_prob = bi_pos_prob / m
+      bi_neg_prob = bi_neg_prob / n
+      positive_probability = (bi_pos_prob + uni_pos_prob) / 2
+      negative_probability = (bi_neg_prob + bi_neg_prob) / 2
 
       diff = positive_probability - negative_probability 
+
+      print positive_probability
+      print negative_probability
 
       if math.fabs(diff) <= 0.01: 
          return "neutral"
