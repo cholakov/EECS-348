@@ -178,7 +178,7 @@ class Best_Bayes_Classifier:
 
       print diff
 
-      if math.fabs(diff) <= 0.3: 
+      if math.fabs(diff) <= 0.1: 
          return "neutral"
       if diff > 0: 
          return "positive"

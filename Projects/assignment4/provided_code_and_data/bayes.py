@@ -4,7 +4,7 @@
 #
 #
 
-import math, os, pickle, re
+import math, os, pickle, re, random
 
 class Bayes_Classifier:
 
@@ -13,27 +13,117 @@ class Bayes_Classifier:
       cache of a trained classifier has been stored, it loads this cache.  Otherwise, 
       the system will proceed through training.  After running this method, the classifier 
       is ready to classify input text."""
+
+      # Create a list IFileList which contains the file names of all movie reviews
+      self.IFileList = []
+      for fileObj in os.walk("movies_reviews/"):
+         self.IFileList = fileObj[2]
+         break
+
       # If the dictionaries exist, load them
       if (os.path.isfile("positive") and os.path.isfile("negative")):
          self.positive = self.load("positive")
          self.negative = self.load("negative")
-         print "The dictionaries exist and won't be recalculated."
+         print "Unigram dictionaries exist and won't be recalculated."
       else: 
-         print "No existing dictionaries found."
-         self.positive = {}
-         self.negative = {}
-         self.train()
+         print "No unigram dictionaries found. Generating now..."
+
+         # Generate dictionaries
+         dictionaries = self.train()
+         
+         # Assign the dictionaries to classifier
+         self.negative = dictionaries[0]
+         self.positive = dictionaries[1]
+
+         # Save the dictionaries to file
+         self.save(dictionaries[0], "negative")
+         self.save(dictionaries[1], "positive")
+         
          print "Dictionaries generated."
 
 
-   def train(self):   
-      """Trains the Naive Bayes Sentiment Classifier."""
+   def crossValidate(self):
+      """ Runs a 10-fold cross validation and returns performance stats. """
+
+      print "10-fold cross validation started. Please be patient."
 
       # Create a list IFileList which contains the file names of all movie reviews
       IFileList = []
       for fileObj in os.walk("movies_reviews/"):
          IFileList = fileObj[2]
          break
+
+      # Temporarily, save the original dictionaries to new variables
+      positiveOriginal = self.positive
+      negativeOriginal = self.negative
+
+      # Run cross-validation 10 times
+      for num in range(1,11):
+
+         # Divide the files of the movie reviews into training and testing sets
+         testData = random.sample(set(IFileList), len(IFileList)/10)
+         trainData = set(IFileList) - set(testData)
+
+         # Generate dictionaires
+         dictionaries = self.train(trainData)
+
+         self.negative = dictionaries[0]
+         self.positive = dictionaries[1]
+
+         trueNegative = 0
+         truePositive = 0
+         falsePositive = 0
+         falseNegative = 0
+         numPos = 0
+         numNeg = 0
+
+         for reviewId in testData:
+            # Load content of review
+            content = self.loadFile("movies_reviews/" + reviewId)
+            sentiment = self.classify(content)
+
+            if (reviewId[7] == "1"):
+               numNeg += 1
+            else:
+               numPos += 1
+
+            if ((reviewId[7] == "1" and sentiment == "negative")):
+               trueNegative += 1
+            elif ((reviewId[7] == "5" and sentiment == "positive")):
+               truePositive += 1
+            elif ((reviewId[7] == "1" and sentiment == "positive")):
+               falsePositive += 1
+            elif ((reviewId[7] == "5" and sentiment == "negative")):
+               falseNegative += 1
+
+
+
+         Precision_Pos = float(truePositive) / float(truePositive + falsePositive)
+         Precision_Neg = float(trueNegative) / float(trueNegative + falseNegative)
+
+         Recall_Pos = float(truePositive) / float(numPos)
+         Recall_Neg = float(trueNegative) / float(numNeg)
+
+         fMeasure_Pos = 2 * (float(Precision_Pos) * float(Recall_Pos)) / float(Precision_Pos + Recall_Pos)
+         fMeasure_Neg = 2 * (float(Precision_Neg) * float(Recall_Neg)) / float(Precision_Neg + Recall_Neg)
+
+         print "Cross Validation #" + str(num)
+         print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
+         print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+         
+
+      # Restore the original dictionaries
+      self.positive = positiveOriginal
+      self.negative = negativeOriginal
+
+   def train(self, IFileList = -1):   
+      """Trains the Naive Bayes Sentiment Classifier over movie reviews which should be passed as an argument. """
+
+      if (IFileList == -1):
+         IFileList = self.IFileList
+         
+      negative = {}
+      positive = {}
 
       # For each file
       for fileName in IFileList: 
@@ -54,13 +144,11 @@ class Bayes_Classifier:
          # Determine the mood of the review.
          for word in tokenized:
             if (fileName[7] == "1"):
-               updateFrequency(self.negative, word)
+               updateFrequency(negative, word)
             elif (fileName[7] == "5"):
-               updateFrequency(self.positive, word)
+               updateFrequency(positive, word)
 
-      # Save the dictionaries to disk
-      self.save(self.negative, "negative")
-      self.save(self.positive, "positive")
+      return negative, positive
          
     
    def classify(self, sText):
@@ -106,8 +194,7 @@ class Bayes_Classifier:
       positive_probability = positive_probability / i
       negative_probability = negative_probability / j
 
-      diff = positive_probability - negative_probability
-      print diff  
+      diff = positive_probability - negative_probability 
 
       if math.fabs(diff) <= 0.1: 
          return "neutral" 
