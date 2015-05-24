@@ -13,36 +13,57 @@ class Best_Bayes_Classifier:
       cache of a trained classifier has been stored, it loads this cache.  Otherwise, 
       the system will proceed through training.  After running this method, the classifier 
       is ready to classify input text."""
+
+      # Create a list IFileList which contains the file names of all movie reviews
+      self.IFileList = []
+      for fileObj in os.walk("movies_reviews/"):
+         self.IFileList = fileObj[2]
+         break
+
       # If the dictionaries exist, load them
       if (os.path.isfile("BigramsPositive") and os.path.isfile("BigramsNegative")):
          self.positiveBigrams = self.load("BigramsPositive")
          self.negativeBigrams = self.load("BigramsNegative")
          print "The Bigram dictionaries exist and won't be recalculated."
       else: 
-         print "No existing Bigram dictionaries found."
-         self.positiveBigrams = {}
-         self.negativeBigrams = {}
-         self.trainBigrams()
+         print "No existing Bigram dictionaries found. Generating now..."
+         dictionaries = self.trainBigrams()
+
+         # Assign the dictionaries to classifier
+         self.negativeBigrams = dictionaries[0]
+         self.positiveBigrams = dictionaries[1]
+
+         # Save the dictionaries to disk
+         self.save(self.negativeBigrams, "BigramsNegative")
+         self.save(self.positiveBigrams, "BigramsPositive")
          print "Bigram dictionaries generated."
+
       if (os.path.isfile("positive") and os.path.isfile("negative")):
          self.positiveUnigrams = self.load("positive")
          self.negativeUnigrams = self.load("negative")
          print "The unigram dictionaries exist and won't be recalculated" 
       else:
-         print "No existing Unigram dictionaries found." 
-         self.positiveUnigrams = {}
-         self.negativeUnigrams = {}
-         self.trainUnigrams()
-         print "The bigram dictionaries exist and won't be recalculated" 
+         print "No existing Unigram dictionaries found. Generating now..." 
+         # Generate dictionaries
+         dictionaries = self.trainUnigrams()
+         
+         # Assign the dictionaries to classifier
+         self.negative = dictionaries[0]
+         self.positive = dictionaries[1]
 
-   def trainBigrams(self):   # train for bigrams 
+         # Save the dictionaries to file
+         self.save(dictionaries[0], "negative")
+         self.save(dictionaries[1], "positive")
+         print "Unigram dictionaries generated."
+
+   def trainBigrams(self, IFileList = -1):   # train for bigrams 
       """Trains the Naive Bayes Sentiment Classifier."""
 
-      # Create a list IFileList which contains the file names of all movie reviews
-      IFileList = []
-      for fileObj in os.walk("movies_reviews/"):
-         IFileList = fileObj[2]
-         break
+      if (IFileList == -1):
+         IFileList = self.IFileList
+
+      positive = {}
+      negative = {}
 
       # For each file
       for fileName in IFileList: 
@@ -63,22 +84,20 @@ class Best_Bayes_Classifier:
          # Determine the mood of the review.
          for word in tokenized:
             if (fileName[7] == "1"):
-               updateFrequency(self.negativeBigrams, word)
+               updateFrequency(negative, word)
             elif (fileName[7] == "5"):
-               updateFrequency(self.positiveBigrams, word)
+               updateFrequency(positive, word)
 
-      # Save the dictionaries to disk
-      self.save(self.negativeBigrams, "BigramsNegative")
-      self.save(self.positiveBigrams, "BigramsPositive")
+      return negative, positive
 
-   def trainUnigrams(self):   # trains for Unigrams 
+   def trainUnigrams(self, IFileList = -1):   # trains for Unigrams 
       """Trains the Naive Bayes Sentiment Classifier."""
 
-      # Create a list IFileList which contains the file names of all movie reviews
-      IFileList = []
-      for fileObj in os.walk("movies_reviews/"):
-         IFileList = fileObj[2]
-         break
+      if (IFileList == -1):
+         IFileList = self.IFileList
+
+      negative = {}
+      positive = {}
 
       # For each file
       for fileName in IFileList: 
@@ -99,14 +118,98 @@ class Best_Bayes_Classifier:
          # Determine the mood of the review.
          for word in tokenized:
             if (fileName[7] == "1"):
-               updateFrequency(self.negativeUnigrams, word)
+               updateFrequency(negative, word)
             elif (fileName[7] == "5"):
-               updateFrequency(self.positiveUnigrams, word)
+               updateFrequency(positive, word)
 
-      # Save the dictionaries to disk
-      self.save(self.negativeUnigrams, "negative")
-      self.save(self.positiveUnigrams, "positive")
-         
+      return negative, positive     
+
+   def crossValidate(self):
+      """ Runs a 10-fold cross validation and returns performance stats. """
+
+      print "10-fold cross validation started. Please be patient."
+
+      # Temporarily, save the original dictionaries to new variables
+      positiveUniOriginal = self.positiveUnigrams
+      negativeUniOriginal = self.negativeUnigrams
+      positiveBiOriginal = self.positiveBigrams
+      negativeBiOriginal = self.negativeBigrams
+
+      precision_avg = []
+      recall_avg = []
+      fMeasure_avg = []
+
+      # Run cross-validation 10 times
+      for num in range(1,11):
+
+         # Divide the files of the movie reviews into training and testing sets
+         testData = random.sample(set(self.IFileList), len(self.IFileList)/10)
+         trainData = set(self.IFileList) - set(testData)
+
+         # Generate dictionaires
+         dictionariesUni = self.trainUnigrams(trainData)
+         dictionariesBi = self.trainBigrams(trainData)
+
+         self.negativeUnigrams = dictionariesUni[0]
+         self.positiveUnigrams = dictionariesUni[1]
+         self.negativeBigrams = dictionariesBi[0]
+         self.positiveBigrams = dictionariesBi[1]
+
+         trueNegative = 0
+         truePositive = 0
+         falsePositive = 0
+         falseNegative = 0
+         numPos = 0
+         numNeg = 0
+
+         for reviewId in testData:
+            # Load content of review
+            content = self.loadFile("movies_reviews/" + reviewId)
+            sentiment = self.classify(content)
+
+            if (reviewId[7] == "1"):
+               numNeg += 1
+            elif (reviewId[7] == "5"):
+               numPos += 1
+
+            if ((reviewId[7] == "1" and sentiment == "negative")):
+               trueNegative += 1
+            elif ((reviewId[7] == "5" and sentiment == "positive")):
+               truePositive += 1
+            elif ((reviewId[7] == "1" and sentiment == "positive")):
+               falsePositive += 1
+            elif ((reviewId[7] == "5" and sentiment == "negative")):
+               falseNegative += 1
+
+
+         Precision_Pos = float(truePositive) / float(truePositive + falsePositive)
+         Precision_Neg = float(trueNegative) / float(trueNegative + falseNegative)
+
+         Recall_Pos = float(truePositive) / float(numPos)
+         Recall_Neg = float(trueNegative) / float(numNeg)
+
+         fMeasure_Pos = 2 * (float(Precision_Pos) * float(Recall_Pos)) / float(Precision_Pos + Recall_Pos)
+         fMeasure_Neg = 2 * (float(Precision_Neg) * float(Recall_Neg)) / float(Precision_Neg + Recall_Neg)
+
+         precision_avg.extend([Precision_Pos, Precision_Neg])
+         recall_avg.extend([Recall_Pos, Recall_Neg])
+         fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
+
+         #print "Cross Validation #" + str(num)
+         #print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
+         #print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+
+      precision = sum(precision_avg) / len(precision_avg)
+      recall = sum(recall_avg) / len(recall_avg)
+      fMeasure = sum(fMeasure_avg) / len(fMeasure_avg)
+
+      print "Precision " + str(precision) + ". Recall " + str(recall) + ". F-measure " + str(fMeasure)
+
+      # Restore the original dictionaries
+      self.positiveUnigrams = positiveUniOriginal
+      self.negativeUnigrams = negativeUniOriginal
+      self.positiveBigrams = positiveBiOriginal
+      self.negativeBigrams = negativeBiOriginal
     
    def classify(self, sText):
       """Given a target string sText, the function returns the most likely document
@@ -176,15 +279,12 @@ class Best_Bayes_Classifier:
 
       diff = positive_probability - negative_probability 
 
-      print diff
-
       if math.fabs(diff) <= 0.1: 
          return "neutral"
       if diff > 0: 
          return "positive"
       else: 
          return "negative"
-
 
    def loadFile(self, sFilename):
       """Given a file name, return the contents of the file as a string."""

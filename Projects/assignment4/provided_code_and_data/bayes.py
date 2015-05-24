@@ -47,12 +47,6 @@ class Bayes_Classifier:
 
       print "10-fold cross validation started. Please be patient."
 
-      # Create a list IFileList which contains the file names of all movie reviews
-      IFileList = []
-      for fileObj in os.walk("movies_reviews/"):
-         IFileList = fileObj[2]
-         break
-
       # Temporarily, save the original dictionaries to new variables
       positiveOriginal = self.positive
       negativeOriginal = self.negative
@@ -65,8 +59,8 @@ class Bayes_Classifier:
       for num in range(1,11):
 
          # Divide the files of the movie reviews into training and testing sets
-         testData = random.sample(set(IFileList), len(IFileList)/10)
-         trainData = set(IFileList) - set(testData)
+         testData = random.sample(set(self.IFileList), len(self.IFileList)/10)
+         trainData = set(self.IFileList) - set(testData)
 
          # Generate dictionaires
          dictionaries = self.train(trainData)
@@ -110,9 +104,9 @@ class Bayes_Classifier:
          fMeasure_Pos = 2 * (float(Precision_Pos) * float(Recall_Pos)) / float(Precision_Pos + Recall_Pos)
          fMeasure_Neg = 2 * (float(Precision_Neg) * float(Recall_Neg)) / float(Precision_Neg + Recall_Neg)
 
-         precision_avg.extend(Precision_Pos, Precision_Neg)
-         recall_avg.extend(Recall_Pos, Recall_Neg)
-         fMeasure_avg.extend(fMeasure_Pos, fMeasure_Neg) 
+         precision_avg.extend([Precision_Pos, Precision_Neg])
+         recall_avg.extend([Recall_Pos, Recall_Neg])
+         fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
 
          #print "Cross Validation #" + str(num)
          #print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
@@ -121,8 +115,8 @@ class Bayes_Classifier:
       precision = sum(precision_avg) / len(precision_avg)
       recall = sum(recall_avg) / len(recall_avg)
       fMeasure = sum(fMeasure_avg) / len(fMeasure_avg)
-      
-      print "Precision " + precision + ". Recall " + str(recall) + ". F-measure " + str(fMeasure)
+
+      print "Precision " + str(precision) + ". Recall " + str(recall) + ". F-measure " + str(fMeasure)
 
       # Restore the original dictionaries
       self.positive = positiveOriginal
@@ -160,8 +154,7 @@ class Bayes_Classifier:
             elif (fileName[7] == "5"):
                updateFrequency(positive, word)
 
-      return negative, positive
-         
+      return negative, positive    
     
    def classify(self, sText):
       """Given a target string sText, the function returns the most likely document
@@ -214,7 +207,6 @@ class Bayes_Classifier:
          return "positive"
       else: 
          return "negative" 
-
 
    def loadFile(self, sFilename):
       """Given a file name, return the contents of the file as a string."""
