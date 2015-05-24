@@ -57,6 +57,10 @@ class Bayes_Classifier:
       positiveOriginal = self.positive
       negativeOriginal = self.negative
 
+      precision_avg = []
+      recall_avg = []
+      fMeasure_avg = []
+
       # Run cross-validation 10 times
       for num in range(1,11):
 
@@ -84,7 +88,7 @@ class Bayes_Classifier:
 
             if (reviewId[7] == "1"):
                numNeg += 1
-            else:
+            elif (reviewId[7] == "5"):
                numPos += 1
 
             if ((reviewId[7] == "1" and sentiment == "negative")):
@@ -97,7 +101,6 @@ class Bayes_Classifier:
                falseNegative += 1
 
 
-
          Precision_Pos = float(truePositive) / float(truePositive + falsePositive)
          Precision_Neg = float(trueNegative) / float(trueNegative + falseNegative)
 
@@ -107,10 +110,19 @@ class Bayes_Classifier:
          fMeasure_Pos = 2 * (float(Precision_Pos) * float(Recall_Pos)) / float(Precision_Pos + Recall_Pos)
          fMeasure_Neg = 2 * (float(Precision_Neg) * float(Recall_Neg)) / float(Precision_Neg + Recall_Neg)
 
-         print "Cross Validation #" + str(num)
-         print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
-         print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
-         
+         precision_avg.extend(Precision_Pos, Precision_Neg)
+         recall_avg.extend(Recall_Pos, Recall_Neg)
+         fMeasure_avg.extend(fMeasure_Pos, fMeasure_Neg) 
+
+         #print "Cross Validation #" + str(num)
+         #print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
+         #print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+
+      precision = sum(precision_avg) / len(precision_avg)
+      recall = sum(recall_avg) / len(recall_avg)
+      fMeasure = sum(fMeasure_avg) / len(fMeasure_avg)
+      
+      print "Precision " + precision + ". Recall " + str(recall) + ". F-measure " + str(fMeasure)
 
       # Restore the original dictionaries
       self.positive = positiveOriginal
@@ -121,7 +133,7 @@ class Bayes_Classifier:
 
       if (IFileList == -1):
          IFileList = self.IFileList
-         
+
       negative = {}
       positive = {}
 
