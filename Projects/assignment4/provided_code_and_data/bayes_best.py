@@ -150,6 +150,7 @@ class Best_Bayes_Classifier:
          dictionariesUni = self.trainUnigrams(trainData)
          dictionariesBi = self.trainBigrams(trainData)
 
+         # Temporarily, change the class dictionaries with the testing ones
          self.negativeUnigrams = dictionariesUni[0]
          self.positiveUnigrams = dictionariesUni[1]
          self.negativeBigrams = dictionariesBi[0]
@@ -195,10 +196,7 @@ class Best_Bayes_Classifier:
          recall_avg.extend([Recall_Pos, Recall_Neg])
          fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
 
-         #print "Cross Validation #" + str(num)
-         #print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
-         #print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
-
+      # Average over all values
       precision = sum(precision_avg) / len(precision_avg)
       recall = sum(recall_avg) / len(recall_avg)
       fMeasure = sum(fMeasure_avg) / len(fMeasure_avg)
@@ -279,7 +277,7 @@ class Best_Bayes_Classifier:
 
       diff = positive_probability - negative_probability 
 
-      if math.fabs(diff) <= 0.1: 
+      if math.fabs(diff) <= 0.01: 
          return "neutral"
       if diff > 0: 
          return "positive"

@@ -201,7 +201,7 @@ class Bayes_Classifier:
 
       diff = positive_probability - negative_probability 
 
-      if math.fabs(diff) <= 0.1: 
+      if math.fabs(diff) <= 0.01: 
          return "neutral" 
       if diff > 0: 
          return "positive"
