@@ -201,10 +201,6 @@ class Bayes_Classifier:
          else:
             negative_probability += math.log(1.0 / total_words_in_negative)
 
-      # Normalize for the length of the review 
-      positive_probability = positive_probability
-      negative_probability = negative_probability
-
       diff = positive_probability - negative_probability
 
       if math.fabs(diff) <= 1: 

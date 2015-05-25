@@ -140,7 +140,7 @@ class Bayes_Classifier_Best:
       fMeasure_avg = []
 
       # Run cross-validation 10 times
-      for num in range(1,2):
+      for num in range(1,11):
 
          # Divide the files of the movie reviews into training and testing sets
          testData = random.sample(set(self.IFileList), len(self.IFileList)/10)
@@ -196,8 +196,8 @@ class Bayes_Classifier_Best:
          fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
 
          print "Cross Validation #" + str(num) + " completed."
-         print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
-         print "NEGATIVE: Precision " + str(Precision_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+         #print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
+         #print "NEGATIVE: Precision " + str(Precision_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
 
       # Average over all values
       precision = sum(precision_avg) / len(precision_avg)
@@ -263,11 +263,11 @@ class Bayes_Classifier_Best:
             bi_neg_prob += math.log(1.0 / total_words_in_negativeBi)
 
       positive_probability = (bi_pos_prob + uni_pos_prob) 
-      negative_probability = (bi_neg_prob + uni_neg_prob) 
+      negative_probability = (bi_neg_prob + uni_neg_prob)
 
       diff = positive_probability - negative_probability 
 
-      if math.fabs(diff) <= 10: 
+      if math.fabs(diff) <= 1: 
          return "neutral"
       if diff > 0: 
          return "positive"
