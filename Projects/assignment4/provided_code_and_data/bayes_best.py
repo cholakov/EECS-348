@@ -6,7 +6,7 @@
 
 import math, os, pickle, re, random
 
-class Best_Bayes_Classifier:
+class Bayes_Classifier_Best:
 
    def __init__(self):
       """This method initializes and trains the Naive Bayes Sentiment Classifier.  If a 
@@ -127,7 +127,7 @@ class Best_Bayes_Classifier:
    def crossValidate(self):
       """ Runs a 10-fold cross validation and returns performance stats. """
 
-      print "10-fold cross validation started. Please be patient."
+      print "Ten-fold cross validation started. Please wait..."
 
       # Temporarily, save the original dictionaries to new variables
       positiveUniOriginal = self.positiveUnigrams
@@ -195,7 +195,7 @@ class Best_Bayes_Classifier:
          recall_avg.extend([Recall_Pos, Recall_Neg])
          fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
 
-         print "Cross Validation #" + str(num)
+         print "Cross Validation #" + str(num) + " completed."
          print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
          print "NEGATIVE: Precision " + str(Precision_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
 
@@ -234,54 +234,40 @@ class Best_Bayes_Classifier:
 
       # Run Bayes Classifier for Unigrams 
 
-      i = 0
-      j = 0
-      uni_neg_prob = 0
-      uni_pos_prob = 0
+      uni_neg_prob = 0.0
+      uni_pos_prob = 0.0
       
       for word in unigrams:   # For each word in sText  
          if (self.positiveUnigrams.has_key(word)):  # Is word in positive dict?
-            uni_pos_prob += math.log(((self.positiveUnigrams[word] + 1.0) / total_words_in_positiveUni))
-            i += 1
+            uni_pos_prob += math.log((self.positiveUnigrams[word] + 1.0) / total_words_in_positiveUni)
+         else:
+            uni_pos_prob += math.log(1.0 / total_words_in_positiveUni)
          if (self.negativeUnigrams.has_key(word)):  # Is word in negative dict?
-            uni_neg_prob += math.log(((self.negativeUnigrams[word] + 1.0) / total_words_in_negativeUni))
-            j += 1
+            uni_neg_prob += math.log((self.negativeUnigrams[word] + 1.0) / total_words_in_negativeUni)
+         else:
+            uni_neg_prob += math.log(1.0 / total_words_in_negativeUni)
 
-      if i == 0:
-         i = 1
-      if j == 0:
-         j = 1 
-
-      uni_pos_prob = uni_pos_prob / i
-      uni_neg_prob = uni_neg_prob / j
 
       # Run Bayes Classifier for Bigrams
-      m = 0
-      n = 0 
       bi_pos_prob = 0
       bi_neg_prob = 0 
 
       for word in bigrams: # for each pair of words 
          if (self.positiveBigrams.has_key(word)):
             bi_pos_prob += math.log(((self.positiveBigrams[word] + 1.0) / total_words_in_positiveBi))
-            m += 1
+         else:
+            bi_pos_prob += math.log(1.0 / total_words_in_positiveBi)
          if (self.negativeBigrams.has_key(word)):
-            bi_neg_prob += math.log(((self.negativeBigrams[word] + 1.0) / total_words_in_negativeBi))
-            n += 1 
+            bi_neg_prob += math.log((self.negativeBigrams[word] + 1.0) / total_words_in_negativeBi)
+         else:
+            bi_neg_prob += math.log(1.0 / total_words_in_negativeBi)
 
-      if m == 0:
-         m = 1
-      if n == 0:
-         n = 1
-
-      bi_pos_prob = bi_pos_prob / m
-      bi_neg_prob = bi_neg_prob / n
-      positive_probability = (bi_pos_prob + uni_pos_prob) / 2
-      negative_probability = (bi_neg_prob + uni_neg_prob) / 2
+      positive_probability = (bi_pos_prob + uni_pos_prob) 
+      negative_probability = (bi_neg_prob + uni_neg_prob) 
 
       diff = positive_probability - negative_probability 
 
-      if math.fabs(diff) <= 0.01: 
+      if math.fabs(diff) <= 10: 
          return "neutral"
       if diff > 0: 
          return "positive"
