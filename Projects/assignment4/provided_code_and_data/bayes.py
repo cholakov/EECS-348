@@ -56,7 +56,7 @@ class Bayes_Classifier:
       fMeasure_avg = []
 
       # Run cross-validation 10 times
-      for num in range(1,11):
+      for num in range(1,2):
 
          # Divide the files of the movie reviews into training and testing sets
          testData = random.sample(set(self.IFileList), len(self.IFileList)/10)
@@ -74,6 +74,7 @@ class Bayes_Classifier:
          falseNegative = 0
          numPos = 0
          numNeg = 0
+         neutral = 0
 
          for reviewId in testData:
             # Load content of review
@@ -94,6 +95,19 @@ class Bayes_Classifier:
             elif ((reviewId[7] == "5" and sentiment == "negative")):
                falseNegative += 1
 
+            if (sentiment == "neutral"):
+               neutral += 1
+
+         print "numPos " + str(numPos)
+         print "numNeg " + str(numNeg)
+
+         print "neutral " + str(neutral)
+         
+         print "trueNegative " + str(trueNegative)
+         print "falseNegative " + str(falseNegative)
+
+         print "truePositive " + str(truePositive)
+         print "falsePositive " + str(falsePositive)
 
          Precision_Pos = float(truePositive) / float(truePositive + falsePositive)
          Precision_Neg = float(trueNegative) / float(trueNegative + falseNegative)
@@ -108,9 +122,9 @@ class Bayes_Classifier:
          recall_avg.extend([Recall_Pos, Recall_Neg])
          fMeasure_avg.extend([fMeasure_Pos, fMeasure_Neg]) 
 
-         #print "Cross Validation #" + str(num)
-         #print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
-         #print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+         print "Cross Validation #" + str(num)
+         print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
+         print "NEGATIVE: Precision " + str(Precision_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
 
       precision = sum(precision_avg) / len(precision_avg)
       recall = sum(recall_avg) / len(recall_avg)
@@ -175,34 +189,25 @@ class Bayes_Classifier:
       total_words_in_positive = sum(pos_list)
       total_words_in_negative = sum(neg_list) 
 
-
       # Run Bayes Classifier
       # Fixes undewflow and uses add 1 smoothing 
 
-      i = 0
-      j = 0
       
       for word in tokenized:   # For each word in sText  
          if (self.positive.has_key(word)):  # Is word in positive dict?
-            positive_probability += math.log(((self.positive[word] + 1.0) / total_words_in_positive))
-            i += 1
+            positive_probability += math.log((self.positive[word] + 1.0) / total_words_in_positive)
+         else:
+            positive_probability += math.log(1.0 / total_words_in_positive)
          if (self.negative.has_key(word)):  # Is word in negative dict?
-            negative_probability += math.log(((self.negative[word] + 1.0) / total_words_in_negative))
-            j += 1
-
-      if i == 0:
-         i = 1
-      if j == 0:
-         j = 1 
+            negative_probability += math.log((self.negative[word] + 1.0) / total_words_in_negative)
+         else:
+            negative_probability += math.log(1.0 / total_words_in_negative)
 
       # Normalize for the length of the review 
-      positive_probability = positive_probability / i
-      negative_probability = negative_probability / j
+      positive_probability = positive_probability
+      negative_probability = negative_probability
 
       diff = positive_probability - negative_probability 
-
-      print positive_probability
-      print negative_probability
 
       if math.fabs(diff) <= 0.01: 
          return "neutral" 

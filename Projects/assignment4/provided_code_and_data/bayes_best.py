@@ -4,7 +4,7 @@
 #
 #
 
-import math, os, pickle, re
+import math, os, pickle, re, random
 
 class Best_Bayes_Classifier:
 
@@ -182,7 +182,6 @@ class Best_Bayes_Classifier:
             elif ((reviewId[7] == "5" and sentiment == "negative")):
                falseNegative += 1
 
-
          Precision_Pos = float(truePositive) / float(truePositive + falsePositive)
          Precision_Neg = float(trueNegative) / float(trueNegative + falseNegative)
 
@@ -198,7 +197,7 @@ class Best_Bayes_Classifier:
 
          print "Cross Validation #" + str(num)
          print "POSITIVE: Precision " + str(Precision_Pos) + ". Recall " + str(Recall_Pos) + ". F-measure " + str(fMeasure_Pos)
-         print "NEGATIVE: Precision " + str(Recall_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
+         print "NEGATIVE: Precision " + str(Precision_Neg) + ". Recall " + str(Recall_Neg) + ". F-measure " + str(fMeasure_Neg)
 
       # Average over all values
       precision = sum(precision_avg) / len(precision_avg)
@@ -278,12 +277,9 @@ class Best_Bayes_Classifier:
       bi_pos_prob = bi_pos_prob / m
       bi_neg_prob = bi_neg_prob / n
       positive_probability = (bi_pos_prob + uni_pos_prob) / 2
-      negative_probability = (bi_neg_prob + bi_neg_prob) / 2
+      negative_probability = (bi_neg_prob + uni_neg_prob) / 2
 
       diff = positive_probability - negative_probability 
-
-      print positive_probability
-      print negative_probability
 
       if math.fabs(diff) <= 0.01: 
          return "neutral"
