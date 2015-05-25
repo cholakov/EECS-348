@@ -254,13 +254,13 @@ class Bayes_Classifier_Best:
 
       for word in bigrams: # for each pair of words 
          if (self.positiveBigrams.has_key(word)):
-            bi_pos_prob += math.log(((self.positiveBigrams[word] + 1.0) / total_words_in_positiveBi))
+            bi_pos_prob += math.log(((self.positiveBigrams[word] + 0.001) / total_words_in_positiveBi))
          else:
-            bi_pos_prob += math.log(1.0 / total_words_in_positiveBi)
+            bi_pos_prob += math.log(0.001 / total_words_in_positiveBi)
          if (self.negativeBigrams.has_key(word)):
-            bi_neg_prob += math.log((self.negativeBigrams[word] + 1.0) / total_words_in_negativeBi)
+            bi_neg_prob += math.log((self.negativeBigrams[word] + 0.001) / total_words_in_negativeBi)
          else:
-            bi_neg_prob += math.log(1.0 / total_words_in_negativeBi)
+            bi_neg_prob += math.log(0.001 / total_words_in_negativeBi)
 
       positive_probability = (bi_pos_prob + uni_pos_prob) 
       negative_probability = (bi_neg_prob + uni_neg_prob)

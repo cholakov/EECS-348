@@ -98,17 +98,6 @@ class Bayes_Classifier:
             if (sentiment == "neutral"):
                neutral += 1
 
-         print "numPos " + str(numPos)
-         print "numNeg " + str(numNeg)
-
-         print "neutral " + str(neutral)
-         
-         print "trueNegative " + str(trueNegative)
-         print "falseNegative " + str(falseNegative)
-
-         print "truePositive " + str(truePositive)
-         print "falsePositive " + str(falsePositive)
-
          Precision_Pos = float(truePositive) / float(truePositive + falsePositive)
          Precision_Neg = float(trueNegative) / float(trueNegative + falseNegative)
 
@@ -193,13 +182,13 @@ class Bayes_Classifier:
       # Fixes undewflow and uses add 1 smoothing      
       for word in tokenized:   # For each word in sText  
          if (self.positive.has_key(word)):  # Is word in positive dict?
-            positive_probability += math.log((self.positive[word] + 1.0) / total_words_in_positive)
+            positive_probability += math.log((self.positive[word] + 0.001) / total_words_in_positive)
          else:
-            positive_probability += math.log(1.0 / total_words_in_positive)
+            positive_probability += math.log(0.001 / total_words_in_positive)
          if (self.negative.has_key(word)):  # Is word in negative dict?
-            negative_probability += math.log((self.negative[word] + 1.0) / total_words_in_negative)
+            negative_probability += math.log((self.negative[word] + 0.001) / total_words_in_negative)
          else:
-            negative_probability += math.log(1.0 / total_words_in_negative)
+            negative_probability += math.log(0.001 / total_words_in_negative)
 
       diff = positive_probability - negative_probability
 
