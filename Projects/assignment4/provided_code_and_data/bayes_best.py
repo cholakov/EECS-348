@@ -24,7 +24,7 @@ class Bayes_Classifier_Best:
       if (os.path.isfile("BigramsPositive") and os.path.isfile("BigramsNegative")):
          self.positiveBigrams = self.load("BigramsPositive")
          self.negativeBigrams = self.load("BigramsNegative")
-         print "The Bigram dictionaries exist and won't be recalculated."
+         print "Bigram dictionaries exist and won't be recalculated."
       else: 
          print "No existing Bigram dictionaries found. Generating now..."
          dictionaries = self.trainBigrams()
@@ -41,15 +41,15 @@ class Bayes_Classifier_Best:
       if (os.path.isfile("positive") and os.path.isfile("negative")):
          self.positiveUnigrams = self.load("positive")
          self.negativeUnigrams = self.load("negative")
-         print "The unigram dictionaries exist and won't be recalculated" 
+         print "Unigram dictionaries exist and won't be recalculated" 
       else:
          print "No existing Unigram dictionaries found. Generating now..." 
          # Generate dictionaries
          dictionaries = self.trainUnigrams()
          
          # Assign the dictionaries to classifier
-         self.negative = dictionaries[0]
-         self.positive = dictionaries[1]
+         self.negativeUnigrams = dictionaries[0]
+         self.positiveUnigrams = dictionaries[1]
 
          # Save the dictionaries to file
          self.save(dictionaries[0], "negative")
