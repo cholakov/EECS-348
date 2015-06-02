@@ -180,6 +180,27 @@ class StrokeLabeler:
         self.featureNames = ['length']
         self.contOrDisc = {'length': DISCRETE}
         self.numFVals = { 'length': 2}
+        
+    def confusion(trueLabels, classifications):
+        drawing_as_drawing = 0
+        drawing_as_text = 0
+        text_as_text = 0
+        text_as_drawing = 0
+        a = 0
+        b = 0
+
+        for i in range size(trueLabels):
+            if trueLabels[i] == drawing && classifications[i] == drawing:
+                ++drawing_as_drawing
+            elif trueLabels[i] == drawing && classifications[i] == text:
+                ++drawing_as_text
+            elif trueLabels[i] == text && classifications[i] == text:
+                ++text_as_text
+            elif trueLabels[i] == text && classifications[i] == drawing:
+                ++text_as_drawing
+
+        cmatrix = {'drawing:' {'drawing': drawing_as_drawing, 'text': drawing_as_text}, 'text': {'drawing': text_as_drawing, 'text': text_as_text}}
+        return cmatrix
 
     def featurefy( self, strokes ):
         ''' Converts the list of strokes into a list of feature dictionaries
