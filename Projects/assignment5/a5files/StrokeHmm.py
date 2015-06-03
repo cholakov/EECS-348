@@ -125,12 +125,65 @@ class HMM:
                         self.emissions[s][f][i] /= float(len(featureVals[s][f])+self.numVals[f])
 
               
-    def label( self, data ):
+    def label( self, data ):   # input is stroke features # now, just length 0 if short, 1 long
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
-        # You will implement this function
-        print "label function not yet implemented"
-        return None
+
+        possibilities= [] # two different possible paths 
+
+        p_text = -1 
+        p_drawing = -1 
+
+        for index in range(len(data)):  # for each stroke's dictionary of features
+            i = data[index] 
+            if index == 0:
+                length = i["length"]
+                p_text = self.priors['text'] * self.emissions['text']['length'][length]
+                p_drawing = self.priors['drawing'] * self.emissions['drawing']['length'][length]
+            else:
+                length = i["length"]
+                text=[]
+                drawing=[]
+
+                text.append(p_text*self.transitions['text']['text']*self.self.emissions['text']['length'][length])
+                text.append(p_text*self.transitions['drawing']['text']*self.self.emissions['text']['length'][length])
+                p_text = max(test)
+                x = test.index(p_text) 
+                if x == 0:
+                    a = ['text'] 
+                    if index == 2:
+                        possibilities.append(a) 
+                    else:
+                        possibilities[0].append(a)
+                else:
+                    a = ['drawing']
+                    if index == 2:
+                        possibilities.append(a) 
+                    else:
+                        possibilities[0].append(a)
+
+                drawing.append(p_drawing*self.transitions['text']['drawing']*self.self.emissions['drawing']['length'][length])
+                drawing.append(p_drawing*self.transitions['drawing']['drawing']*self.self.emissions['drawing']['length'][length])
+                p_drawing = max(drawing)
+                x = test.index(p_drawing) 
+                if x == 0:
+                    a = ['text'] 
+                    if index == 2:
+                        possibilities.append(a) 
+                    else:
+                        possibilities[1].append(a)
+                else:
+                    a = ['drawing']
+                    if index == 2:
+                        possibilities.append(a) 
+                    else:
+                        possibilities[1].append(a)
+
+            if p_text > p_drawing:
+                return possibilities[0]
+            else:
+                return possibilities[1]
+
     
     def getEmissionProb( self, state, features ):
         ''' Get P(features|state).
