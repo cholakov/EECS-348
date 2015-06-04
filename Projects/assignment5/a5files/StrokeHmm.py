@@ -3,6 +3,7 @@ import copy
 import guid
 import math
 import os
+import random
 
 # A couple contants
 CONTINUOUS = 0
@@ -128,7 +129,7 @@ class HMM:
                         self.emissions[s][f][i] /= float(len(featureVals[s][f])+self.numVals[f])
 
               
-    def label( self, data ):   # input is stroke features # now, just length 0 if short, 1 long
+    def label(self, data):   # input is stroke features # now, just length 0 if short, 1 long
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
 
@@ -153,6 +154,7 @@ class HMM:
                     entry = {state:prob}
                     probabilities.update(entry) 
             else: 
+                new_prob = {}
                 for state in self.states: # states   # S, C, R 
                     mapping = {}
                     for state2 in self.states:
@@ -164,35 +166,29 @@ class HMM:
                             prob_state_given_f = self.emissions[state][f_name][feature]
                             #prob += math.Log(prob_prior * prob_transition * prob_state_given_f)
                             prob += (prob_prior * prob_transition * prob_state_given_f)
-                        mapping.update({state:prob})
+                        mapping.update({state2:prob})
 
                     
                     maximum_state = max(mapping, key=mapping.get)
-                    print 
+                    
                     maximum_prob = mapping[maximum_state]
 
-                    probabilities.update({state:maximum_prob})
-                    print probabilities 
+                    new_prob.update({state:maximum_prob})
 
                     sequences[index].update({state:maximum_state})
+                probabilities = copy.deepcopy(new_prob)
+            
+        label = max(probabilities, key=probabilities.get)
+        labels.append(label)  
 
-
-
-        label = max(probabilities, key=probabilities.get) 
-        #print sequences 
+      #  print sequences 
+      #  return ''
 
         for timestep in range(len(data)-1,0,-1):
             labels.insert(0,sequences[timestep][label]) 
             label = sequences[timestep][label]
 
         return labels 
-
-#days = {
-#        1: {{"S":""}, {"C":""}, {"R":""}}, 
-#        2: {{"S":"S"}, {"C":"S"}, {"R":"S"}}, 
-#        3: {{"S":"S"}, {"C":"S"}, {"R":"C"}}, 
-#        4: {{"S":"S"}, {"C":"C"}, {"R":"R"}}, 
-#    }"""
     
     def getEmissionProb( self, state, features ):
         ''' Get P(features|state).
@@ -212,9 +208,7 @@ class HMM:
                 fval = features[f]
                 prob *= self.emissions[state][f][fval]
                 
-        return prob
-        
-
+        return prob      
 
 class StrokeLabeler:
     def __init__(self):
@@ -242,6 +236,54 @@ class StrokeLabeler:
         self.featureNames = ['length']
         self.contOrDisc = {'length': DISCRETE}
         self.numFVals = { 'length': 2}
+
+    def evaluate(self, trainingDir):
+        """ Trains HMM with part of the files in trainingDir, and uses the other half for testing.
+        Then, prints and returns a confusion matrix with the correctness of the classifications in the testing set. """
+
+        sketchFiles = self.trainHMMHalfAndHalf(trainingDir)  # A list of paths to .xml files of sketches
+
+        true = []               # true = a list with the true classification of the strokes
+        classified = []         #classified = a list with classifications
+
+        for sketchFile in sketchFiles:
+            print "Classifying " + sketchFile
+            # Fetch true values
+            true.extend(self.loadLabeledFile(sketchFile)[1])
+            # Classify 
+            strokes = self.loadStrokeFile(sketchFile)       # Load strokes
+            classified.extend(self.labelStrokes(strokes))   # Classify strokes
+
+        matrix = self.confusion(true, classified)
+
+        return matrix
+
+
+    def confusion(self, trueLabels, classifications):
+        """ Accepts a list of true labels and classified labels and returns a dictionary of the correctness of the estimation. """
+        drawing_as_drawing = 0
+        drawing_as_text = 0
+        text_as_text = 0
+        text_as_drawing = 0
+        a = 0
+        b = 0
+
+        for i in range(len(trueLabels)):
+            if trueLabels[i] == "drawing" and classifications[i] == "drawing":
+                drawing_as_drawing += 1
+            elif trueLabels[i] == "drawing" and classifications[i] == "text":
+                drawing_as_text += 1
+            elif trueLabels[i] == "text" and classifications[i] == "text":
+                text_as_text += 1
+            elif trueLabels[i] == "text" and classifications[i] == "drawing":
+                text_as_drawing += 1
+
+        cmatrix = {
+                    'drawing': {'drawing': drawing_as_drawing, 'text': drawing_as_text}, 
+                    'text': {'drawing': text_as_drawing, 'text': text_as_text}
+                    }
+
+        return cmatrix
 
     def featurefy( self, strokes ):
         ''' Converts the list of strokes into a list of feature dictionaries
@@ -299,7 +341,7 @@ class StrokeLabeler:
         self.hmm.train(allObservations, allLabels)
 
     def trainHMMDir( self, trainingDir ):
-        ''' train the HMM on all the files in a training directory '''
+        ''' Train the HMM on all the files in a training directory '''
         for fFileObj in os.walk(trainingDir):
             lFileList = fFileObj[2]
             break
@@ -310,6 +352,26 @@ class StrokeLabeler:
         
         tFiles = [ trainingDir + "/" + f for f in goodList ] 
         self.trainHMM(tFiles)
+
+
+    def trainHMMHalfAndHalf( self, trainingDir ):
+        ''' Train the HMM with half of the files in trainingDir. Return a list of paths to the other half for testing. '''
+        for fFileObj in os.walk(trainingDir):
+            lFileList = fFileObj[2]
+            break
+        goodList = []
+        for x in lFileList:
+            if not x.startswith('.'):
+                goodList.append(x)
+        
+        tFiles = [ trainingDir + "/" + f for f in goodList ] 
+
+        training = random.sample(set(tFiles), len(tFiles)/2)    # Randomly choose half of of the files to be for training
+        testing = list(set(tFiles) - set(training))     # Find the difference between the two sets
+
+        self.trainHMM(training)
+        return testing
+
 
     def featureTest( self, strokeFile ):
         ''' Loads a stroke file and tests the feature functions '''
@@ -561,7 +623,6 @@ class Stroke:
         return ret
 
 
-
     def sumOfCurvature(self, func=lambda x: x, skip=1):
         ''' Return the normalized sum of curvature for a stroke.
             func is a function to apply to the curvature before summing
@@ -611,5 +672,3 @@ class Stroke:
         return ret / len(self.points)
 
     # You can (and should) define more features here
-
-
