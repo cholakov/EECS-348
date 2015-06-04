@@ -127,7 +127,6 @@ class HMM:
                     # Now we have counts of each feature and we need to normalize
                     for i in range(len(self.emissions[s][f])):
                         self.emissions[s][f][i] /= float(len(featureVals[s][f])+self.numVals[f])
-
               
     def label(self, data):   # input is stroke features # now, just length 0 if short, 1 long
         ''' Find the most likely labels for the sequence of data
@@ -181,15 +180,13 @@ class HMM:
         label = max(probabilities, key=probabilities.get)
         labels.append(label)  
 
-      #  print sequences 
-      #  return ''
-
         for timestep in range(len(data)-1,0,-1):
             labels.insert(0,sequences[timestep][label]) 
             label = sequences[timestep][label]
 
         return labels 
-    
+
+
     def getEmissionProb( self, state, features ):
         ''' Get P(features|state).
             Consider each feature independent so
@@ -672,3 +669,30 @@ class Stroke:
         return ret / len(self.points)
 
     # You can (and should) define more features here
+
+
+
+# Part 1 Viterbi Testing Example
+def ViterbiTestingExample():
+    """ Part 1 Viterbi Testing Example as requested in the assignment PDF. """
+
+    states = ['sunny','cloudy','rainy']
+    featureNames = ['groundState']
+    numVals = { 'groundState': 3 }
+
+    x = HMM(states, featureNames, 0, numVals)
+
+    x.priors = {'sunny': 0.63, 'cloudy': 0.17, 'rainy': 0.2}
+    x.emissions = {'sunny':{'groundState': [0.6,0.15,0.05]}, 'cloudy':{'groundState': [0.25,0.25,0.25]}, 'rainy':{'groundState': [0.05,0.35,0.5]}}
+    x.transitions = {'sunny':{'sunny':0.5 ,'cloudy':0.375 ,'rainy':0.125 },'cloudy':{'sunny':0.25 ,'cloudy':0.125 ,'rainy':0.625 }, 'rainy':{'sunny':0.25 ,'cloudy':0.375 ,'rainy':0.375 }}
+
+    observed = [ {'groundState':0}, {'groundState':1}, {'groundState':2}, {'groundState':1} ]
+
+    print x.label(observed)
+
+    # Runing ViterbiTestingExample() and printing probabilities in label(self, data), we get the following probabilities:
+    # -------------------------------------------------------------------------------------------------------------------
+    # {'rainy': 0.010000000000000002, 'sunny': 0.378, 'cloudy': 0.0425}
+    # {'rainy': 0.0165375, 'sunny': 0.02835, 'cloudy': 0.0354375}
+    # {'rainy': 0.01107421875, 'sunny': 0.0007087500000000001, 'cloudy': 0.0026578125}
+    # {'rainy': 0.0014534912109374998, 'sunny': 0.00041528320312499996, 'cloudy': 0.0010382080078124999}
