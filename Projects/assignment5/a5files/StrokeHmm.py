@@ -42,6 +42,9 @@ class HMM:
         print "Prior probabilities are:", self.priors
         print "Transition model is:", self.transitions
         print "Evidence model is:", self.emissions
+        print "Possibile states are:", self.states    #######################
+        print "FeatureNames are:", self.featureNames 
+        print "numberVals:", self.numVals 
 
     def trainPriors( self, trainingData, trainingLabels ):
         ''' Train the priors based on the data and labels '''
@@ -129,61 +132,67 @@ class HMM:
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
 
-        possibilities= [] # two different possible paths 
+        sequences= {} 
+        probabilities= {} 
+        labels = [] 
+        label = ""
 
-        p_text = -1 
-        p_drawing = -1 
+        for index in range(len(data)): # for each stroke's dictionary of features
+            dic = data[index] 
+            sequences.update({index:{}})
 
-        for index in range(len(data)):  # for each stroke's dictionary of features
-            i = data[index] 
-            if index == 0:
-                length = i["length"]
-                p_text = self.priors['text'] * self.emissions['text']['length'][length]
-                p_drawing = self.priors['drawing'] * self.emissions['drawing']['length'][length]
-            else:
-                length = i["length"]
-                text=[]
-                drawing=[]
+            if index == 0: # first stroke in data
+                for state in self.states: # states  # S,C,R
+                    prob = 0  
+                    prob_state = self.priors[state] 
+                    for f_name in self.featureNames: # features # gs, test
+                        feature= dic[f_name] # array of probabilities for a feature  'length' array 
+                        prob_state_given_f = self.emissions[state][f_name][feature]
+                        #prob += math.Log(prob_state * prob_state_given_f)
+                        prob += (prob_state * prob_state_given_f)
+                    entry = {state:prob}
+                    probabilities.update(entry) 
+            else: 
+                for state in self.states: # states   # S, C, R 
+                    mapping = {}
+                    for state2 in self.states:
+                        prob = 0 
+                        prob_prior = probabilities[state2] 
+                        prob_transition = self.transitions[state2][state] 
+                        for f_name in self.featureNames:
+                            feature = dic[f_name] 
+                            prob_state_given_f = self.emissions[state][f_name][feature]
+                            #prob += math.Log(prob_prior * prob_transition * prob_state_given_f)
+                            prob += (prob_prior * prob_transition * prob_state_given_f)
+                        mapping.update({state:prob})
 
-                text.append(p_text*self.transitions['text']['text']*self.self.emissions['text']['length'][length])
-                text.append(p_text*self.transitions['drawing']['text']*self.self.emissions['text']['length'][length])
-                p_text = max(test)
-                x = test.index(p_text) 
-                if x == 0:
-                    a = ['text'] 
-                    if index == 2:
-                        possibilities.append(a) 
-                    else:
-                        possibilities[0].append(a)
-                else:
-                    a = ['drawing']
-                    if index == 2:
-                        possibilities.append(a) 
-                    else:
-                        possibilities[0].append(a)
+                    
+                    maximum_state = max(mapping, key=mapping.get)
+                    print 
+                    maximum_prob = mapping[maximum_state]
 
-                drawing.append(p_drawing*self.transitions['text']['drawing']*self.self.emissions['drawing']['length'][length])
-                drawing.append(p_drawing*self.transitions['drawing']['drawing']*self.self.emissions['drawing']['length'][length])
-                p_drawing = max(drawing)
-                x = test.index(p_drawing) 
-                if x == 0:
-                    a = ['text'] 
-                    if index == 2:
-                        possibilities.append(a) 
-                    else:
-                        possibilities[1].append(a)
-                else:
-                    a = ['drawing']
-                    if index == 2:
-                        possibilities.append(a) 
-                    else:
-                        possibilities[1].append(a)
+                    probabilities.update({state:maximum_prob})
+                    print probabilities 
 
-            if p_text > p_drawing:
-                return possibilities[0]
-            else:
-                return possibilities[1]
+                    sequences[index].update({state:maximum_state})
 
+
+
+        label = max(probabilities, key=probabilities.get) 
+        #print sequences 
+
+        for timestep in range(len(data)-1,0,-1):
+            labels.insert(0,sequences[timestep][label]) 
+            label = sequences[timestep][label]
+
+        return labels 
+
+#days = {
+#        1: {{"S":""}, {"C":""}, {"R":""}}, 
+#        2: {{"S":"S"}, {"C":"S"}, {"R":"S"}}, 
+#        3: {{"S":"S"}, {"C":"S"}, {"R":"C"}}, 
+#        4: {{"S":"S"}, {"C":"C"}, {"R":"R"}}, 
+#    }"""
     
     def getEmissionProb( self, state, features ):
         ''' Get P(features|state).
