@@ -13,4 +13,4 @@ x.transitions = {'sunny':{'sunny':0.5 ,'cloudy':0.375 ,'rainy':0.125 },'cloudy':
 input = [{'groundState':0},{'groundState':1},{'groundState':2}]
 
 a = x.label(input)
-#print a 
+print a 

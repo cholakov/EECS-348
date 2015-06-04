@@ -153,6 +153,7 @@ class HMM:
                     entry = {state:prob}
                     probabilities.update(entry) 
             else: 
+                new_prob = {}
                 for state in self.states: # states   # S, C, R 
                     mapping = {}
                     for state2 in self.states:
@@ -164,22 +165,23 @@ class HMM:
                             prob_state_given_f = self.emissions[state][f_name][feature]
                             #prob += math.Log(prob_prior * prob_transition * prob_state_given_f)
                             prob += (prob_prior * prob_transition * prob_state_given_f)
-                        mapping.update({state:prob})
+                        mapping.update({state2:prob})
 
                     
                     maximum_state = max(mapping, key=mapping.get)
-                    print 
+                    
                     maximum_prob = mapping[maximum_state]
 
-                    probabilities.update({state:maximum_prob})
-                    print probabilities 
+                    new_prob.update({state:maximum_prob})
 
                     sequences[index].update({state:maximum_state})
+                probabilities = copy.deepcopy(new_prob)
+            
+        label = max(probabilities, key=probabilities.get)
+        labels.append(label)  
 
-
-
-        label = max(probabilities, key=probabilities.get) 
-        #print sequences 
+      #  print sequences 
+      #  return ''
 
         for timestep in range(len(data)-1,0,-1):
             labels.insert(0,sequences[timestep][label]) 
