@@ -6,4 +6,4 @@ x.returnConfusionMatrix("trainingFiles/0128_1.6.1.labeled.xml")
 
 execfile("StrokeHmm.py")
 x = StrokeLabeler()
-x.evaluate("trainingFiles/")
+x.evaluate("../trainingFiles/")
