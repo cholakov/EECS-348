@@ -8,6 +8,8 @@ execfile("StrokeHmm.py")
 x = StrokeLabeler()
 x.evaluate("../trainingFiles/")
 
+# Results {'text': {'text': 129, 'drawing': 245}, 'drawing': {'text': 283, 'drawing': 435}}
+
 
 
 execfile("StrokeHmm.py")
