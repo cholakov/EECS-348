@@ -4,6 +4,7 @@ import guid
 import math
 import os
 import random
+import matplotlib.pyplot as plt
 
 # A couple contants
 CONTINUOUS = 0
@@ -143,12 +144,12 @@ class HMM:
 
             if index == 0: # first stroke in data
                 for state in self.states: # states  # S,C,R
-                    prob = 0  
+                    prob = 0.0 
                     prob_state = self.priors[state] 
                     for f_name in self.featureNames: # features # gs, test
                         feature= dic[f_name] # array of probabilities for a feature  'length' array 
                         prob_state_given_f = self.emissions[state][f_name][feature]
-                        #prob += math.Log(prob_state * prob_state_given_f)
+                        #prob += math.log(abs(prob_state * prob_state_given_f))
                         prob += (prob_state * prob_state_given_f)
                     entry = {state:prob}
                     probabilities.update(entry) 
@@ -157,13 +158,13 @@ class HMM:
                 for state in self.states: # states   # S, C, R 
                     mapping = {}
                     for state2 in self.states:
-                        prob = 0 
-                        prob_prior = probabilities[state2] 
+                        prob = 0.0
+                        prob_prior = probabilities[state2]
                         prob_transition = self.transitions[state2][state] 
                         for f_name in self.featureNames:
                             feature = dic[f_name] 
                             prob_state_given_f = self.emissions[state][f_name][feature]
-                            #prob += math.Log(prob_prior * prob_transition * prob_state_given_f)
+                            #prob += math.log(abs(prob_prior * prob_transition * prob_state_given_f))
                             prob += (prob_prior * prob_transition * prob_state_given_f)
                         mapping.update({state2:prob})
 
@@ -230,9 +231,9 @@ class StrokeLabeler:
         #    name to whether it is continuous or discrete
         # numFVals is a dictionary specifying the number of legal values for
         #    each discrete feature
-        self.featureNames = ['length']
-        self.contOrDisc = {'length': DISCRETE}
-        self.numFVals = { 'length': 2}
+        self.featureNames = ['length', 'curvature', 'ratio', 'area', 'duration']
+        self.contOrDisc = {'length': DISCRETE, 'curvature': DISCRETE, 'ratio': DISCRETE, 'area': DISCRETE, 'duration': DISCRETE}
+        self.numFVals = { 'length': 2, 'curvature': 2, 'ratio': 2, 'area': 2, 'duration': 2}
 
     def evaluate(self, trainingDir):
         """ Trains HMM with part of the files in trainingDir, and uses the other half for testing.
@@ -241,7 +242,7 @@ class StrokeLabeler:
         sketchFiles = self.trainHMMHalfAndHalf(trainingDir)  # A list of paths to .xml files of sketches
 
         true = []               # true = a list with the true classification of the strokes
-        classified = []         #classified = a list with classifications
+        classified = []         # classified = a list with classifications
 
         for sketchFile in sketchFiles:
             print "Classifying " + sketchFile
@@ -307,11 +308,41 @@ class StrokeLabeler:
             # to use.  This is an important process and can be tricky.  Try
             # to use a principled approach (i.e., look at the data) rather
             # than just guessing.
-            l = s.length()
-            if l < 300:
+
+            length = s.length()
+            curvature = s.sumOfCurvature(abs)
+            boundingBox = s.boundingBox()
+            duration = s.duration()
+            
+            area = boundingBox[0]
+            ratio = boundingBox[1]
+
+
+            if length < 300:
                 d['length'] = 0
             else:
                 d['length'] = 1
+
+            if curvature < 0.23:
+                d['curvature'] = 0
+            else:
+                d['curvature'] = 1
+
+            if area < 11500:
+                d['area'] = 0
+            else:
+                d['area'] = 1
+
+            if ratio < 1.27:
+                d['ratio'] = 0
+            else:
+                d['ratio'] = 1
+
+            if duration < 285:
+                d['duration'] = 0
+            else:
+                d['duration'] = 1
+
 
             # We can add more features here just by adding them to the dictionary
             # d as we did with length.  Remember that when you add features,
@@ -370,15 +401,32 @@ class StrokeLabeler:
         return testing
 
 
-    def featureTest( self, strokeFile ):
-        ''' Loads a stroke file and tests the feature functions '''
-        strokes, labels = self.loadLabeledFile( strokeFile )
-        for i in range(len(strokes)):
-            print " "
-            print strokes[i].substrokeIds[0]
-            print "Label is", labels[i]
-            print "Length is", strokes[i].length()
-            print "Curvature is", strokes[i].sumOfCurvature(abs)
+    def featureTest( self, trainingDir ):
+        ''' Loads all files in the training directory and returns a list of values for drawings and for text.'''
+
+        sketchFiles = self.trainHMMHalfAndHalf(trainingDir)  # A list of paths to .xml files of sketches
+
+        drawing = []
+        text = []
+
+        for sketchFile in sketchFiles:
+            strokes, labels = self.loadLabeledFile( sketchFile )
+            for i in range(len(strokes)):
+                if (labels[i] == "drawing"):
+                    drawing.append(strokes[i].duration())
+                elif (labels[i] == "text"):
+                   text.append(strokes[i].duration())
+
+        print drawing
+        print text
+        return drawing, text 
+
+        #strokes, labels = self.loadLabeledFile( strokeFile )
+        #print " "
+        #print strokes[i].substrokeIds[0]
+        #print "Label is", labels[i]
+        #print "Length is", strokes[i].length()
+        #print "Curvature is", strokes[i].sumOfCurvature(abs)
     
     def labelFile( self, strokeFile, outFile ):
         ''' Label the strokes in the file strokeFile and save the labels
@@ -619,7 +667,6 @@ class Stroke:
             prev = p
         return ret
 
-
     def sumOfCurvature(self, func=lambda x: x, skip=1):
         ''' Return the normalized sum of curvature for a stroke.
             func is a function to apply to the curvature before summing
@@ -668,7 +715,32 @@ class Stroke:
 
         return ret / len(self.points)
 
-    # You can (and should) define more features here
+    def boundingBox(self):
+        ''' Returns bounding boxed area of a stroke. ''' 
+        allPoints = self.points 
+        all_x = []
+        all_y = []
+        for point in allPoints: # for each point's tuple 
+            all_x.append(point[0])
+            all_y.append(point[1])
+
+        x_max = max(all_x)
+        x_min = min(all_x)
+        y_max = max(all_y)
+        y_min = min(all_y)
+        xdiff = x_max - x_min + 0.0 
+        ydiff = y_max - y_min + 0.0
+        area = xdiff * ydiff
+        if xdiff == 0:
+            xdiff = 0.00001 
+        ratio = ydiff / xdiff 
+        return area, ratio 
+
+    def duration(self):
+        """ Returns the time taken for drawing a stroke. """
+        allPoints = self.points 
+        duration = allPoints[len(allPoints)-1][2] - allPoints[0][2]
+        return duration
 
 
 
