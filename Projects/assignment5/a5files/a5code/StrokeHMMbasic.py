@@ -1,3 +1,5 @@
+# Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Sophia Lou (sll411), Richard Gates Porter (rgp633)
+
 import xml.dom.minidom
 import copy
 import guid
@@ -168,7 +170,7 @@ class HMM:
                             #prob += math.log(abs(prob_prior * prob_transition * prob_state_given_f))
                         prob *= prob_prior * prob_transition 
                         mapping.update({state2:prob}) # add each probability to mapping dictionary 
-                    print mapping
+
                     # most likely previous state 
                     maximum_state = max(mapping, key=mapping.get)
                     # largest probability 

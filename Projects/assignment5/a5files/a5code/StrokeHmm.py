@@ -1,10 +1,12 @@
+# Andrew Kluge (ajk386), Vesko Cholakov (vgc917), Sophia Lou (sll411), Richard Gates Porter (rgp633)
+
 import xml.dom.minidom
 import copy
 import guid
 import math
 import os
 import random
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 # A couple contants
 CONTINUOUS = 0
@@ -44,9 +46,9 @@ class HMM:
         print "Prior probabilities are:", self.priors
         print "Transition model is:", self.transitions
         print "Evidence model is:", self.emissions
-        print "Possibile states are:", self.states    #######################
-        print "FeatureNames are:", self.featureNames 
-        print "numberVals:", self.numVals 
+        #print "Possibile states are:", self.states    #######################
+        #print "FeatureNames are:", self.featureNames 
+        #print "numberVals:", self.numVals 
 
     def trainPriors( self, trainingData, trainingLabels ):
         ''' Train the priors based on the data and labels '''
@@ -255,10 +257,10 @@ class StrokeLabeler:
             strokes = self.loadStrokeFile(sketchFile)
             classified_single = self.labelStrokes(strokes)
 
+            # Add to list only if all strokes have true labels (because otherwise the values gets mis-mathed)
             if (len(classified_single) == len(true_single)):
                 classified.extend(classified_single)
                 true.extend(true_single)
-                print classified_single
 
         matrix = self.confusion(true, classified)
 
