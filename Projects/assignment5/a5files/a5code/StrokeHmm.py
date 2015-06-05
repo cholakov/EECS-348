@@ -129,63 +129,64 @@ class HMM:
                     for i in range(len(self.emissions[s][f])):
                         self.emissions[s][f][i] /= float(len(featureVals[s][f])+self.numVals[f])
               
-    def label(self, data):   # input is stroke features # now, just length 0 if short, 1 long
+    def label(self, data):   
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
 
-        sequences= {} 
-        probabilities= {} 
-        labels = [] 
-        label = ""
+        sequences= {} # dictionary with sequences of all states for each stroke 
+        probabilities= {} #dictionary holding probabilities for each state 
+        labels = [] # array holding return value of labels 
+        label = "" # initialized last label 
 
-        for index in range(len(data)): # for each stroke's dictionary of features
+        for index in range(len(data)): # for each stroke's dictionary of features 
             dic = data[index] 
-            sequences.update({index:{}})
+            sequences.update({index:{}}) # create dictionary entry for each stroke 
 
             if index == 0: # first stroke in data
-                for state in self.states: # states  # S,C,R
-                    prob = 0.0 
+                for state in self.states: # for each state 
+                    prob = 0.0   
                     prob_state = self.priors[state] 
-                    for f_name in self.featureNames: # features # gs, test
-                        feature= dic[f_name] # array of probabilities for a feature  'length' array 
+                    for f_name in self.featureNames: # for each feature name 
+                        feature= dic[f_name] # array of probabilities for a feature 
                         prob_state_given_f = self.emissions[state][f_name][feature]
+                        prob += prob_state * prob_state_given_f
                         #prob += math.log(abs(prob_state * prob_state_given_f))
-                        prob += (prob_state * prob_state_given_f)
                     entry = {state:prob}
-                    probabilities.update(entry) 
+                    probabilities.update(entry) # update the initial set of probabilities  
             else: 
-                new_prob = {}
-                for state in self.states: # states   # S, C, R 
-                    mapping = {}
-                    for state2 in self.states:
-                        prob = 0.0
-                        prob_prior = probabilities[state2]
+                new_prob = {} # dictionary to hold updated probabilities 
+                for state in self.states: # for each state 
+                    mapping = {} # holds all possible maximum probabilities for a state 
+                    for state2 in self.states: # for each state 
+                        prob = 0.0  
+                        prob_prior = probabilities[state2] 
                         prob_transition = self.transitions[state2][state] 
-                        for f_name in self.featureNames:
+                        for f_name in self.featureNames: # for each featurename 
                             feature = dic[f_name] 
                             prob_state_given_f = self.emissions[state][f_name][feature]
+                            prob += prob_prior * prob_transition * prob_state_given_f
                             #prob += math.log(abs(prob_prior * prob_transition * prob_state_given_f))
-                            prob += (prob_prior * prob_transition * prob_state_given_f)
-                        mapping.update({state2:prob})
+                        mapping.update({state2:prob}) # add each probability to mapping dictionary 
 
-                    
+                    # most likely previous state 
                     maximum_state = max(mapping, key=mapping.get)
-                    
+                    # largest probability 
                     maximum_prob = mapping[maximum_state]
-
+                    # update new probabilities 
                     new_prob.update({state:maximum_prob})
-
+                    # add this possible sequence 
                     sequences[index].update({state:maximum_state})
-                probabilities = copy.deepcopy(new_prob)
+                probabilities = copy.deepcopy(new_prob) # update probabilities 
             
-        label = max(probabilities, key=probabilities.get)
-        labels.append(label)  
+        label = max(probabilities, key=probabilities.get) # last label 
+        labels.append(label) # add to labels list 
 
-        for timestep in range(len(data)-1,0,-1):
-            labels.insert(0,sequences[timestep][label]) 
-            label = sequences[timestep][label]
+        for timestep in range(len(data)-1,0,-1): # for each stroke 
+            labels.insert(0,sequences[timestep][label]) # use last label to find previous 
+            label = sequences[timestep][label] # update last label to previous 
 
         return labels 
+
 
 
     def getEmissionProb( self, state, features ):

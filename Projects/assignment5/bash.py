@@ -14,6 +14,12 @@ x.evaluate("../trainingFiles/")
 # {'text': {'text': 143, 'drawing': 211}, 'drawing': {'text': 239, 'drawing': 476}}
 
 
+# Results – length, curvature, area, ratio, duration
+# {'text': {'text': 88, 'drawing': 243}, 'drawing': {'text': 101, 'drawing': 546}}
+# {'text': {'text': 73, 'drawing': 299}, 'drawing': {'text': 139, 'drawing': 473}}
+# {'text': {'text': 136, 'drawing': 298}, 'drawing': {'text': 133, 'drawing': 573}} #69%  #81%
+
+
 execfile("StrokeHMM.py")
 ViterbiTestingExample()
 
