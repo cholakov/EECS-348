@@ -3,7 +3,7 @@ x = StrokeLabeler()
 x.trainHMM(["../trainingFiles/0128_1.6.1.labeled.xml", "../trainingFiles/0128_1.7.1.labeled.xml", "../trainingFiles/0128_1.8.1.labeled.xml", "../trainingFiles/0128_3.5.1.labeled.xml", "../trainingFiles/0128_3.6.1.labeled.xml"])
 
 
-execfile("StrokeHMM.py")
+execfile("StrokeHMMbasic.py")
 x = StrokeLabeler()
 x.evaluate("../trainingFiles/")
 
@@ -27,5 +27,22 @@ ViterbiTestingExample()
 
 
 
-n, bins, patches = plt.hist(duration_t, 50, normed=1, facecolor='green', alpha=0.75)
+n, bins, patches = plt.hist(area_t, 50, normed=1, facecolor='green', alpha=0.75)
 plt.show()
+
+
+###############
+
+import random
+import numpy
+from matplotlib import pyplot
+
+x = area_d
+y = area_t
+
+
+pyplot.hist(x, 40, alpha=0.5, label='drawing')
+pyplot.hist(y, 40, alpha=0.5, label='text')
+pyplot.legend(loc='upper right')
+pyplot.show()
+

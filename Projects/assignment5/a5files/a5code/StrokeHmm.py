@@ -128,7 +128,7 @@ class HMM:
                     # Now we have counts of each feature and we need to normalize
                     for i in range(len(self.emissions[s][f])):
                         self.emissions[s][f][i] /= float(len(featureVals[s][f])+self.numVals[f])
-              
+
     def label(self, data):   
         ''' Find the most likely labels for the sequence of data
             This is an implementation of the Viterbi algorithm  '''
@@ -144,28 +144,30 @@ class HMM:
 
             if index == 0: # first stroke in data
                 for state in self.states: # for each state 
-                    prob = 0.0   
+                    prob = 1.0   
                     prob_state = self.priors[state] 
                     for f_name in self.featureNames: # for each feature name 
                         feature= dic[f_name] # array of probabilities for a feature 
                         prob_state_given_f = self.emissions[state][f_name][feature]
-                        prob += prob_state * prob_state_given_f
+                        prob *= prob_state_given_f
                         #prob += math.log(abs(prob_state * prob_state_given_f))
+                    prob *= prob_state
                     entry = {state:prob}
-                    probabilities.update(entry) # update the initial set of probabilities  
+                    probabilities.update(entry) # update the initial set of probabilities 
             else: 
                 new_prob = {} # dictionary to hold updated probabilities 
                 for state in self.states: # for each state 
                     mapping = {} # holds all possible maximum probabilities for a state 
                     for state2 in self.states: # for each state 
-                        prob = 0.0  
+                        prob = 1.0  
                         prob_prior = probabilities[state2] 
                         prob_transition = self.transitions[state2][state] 
                         for f_name in self.featureNames: # for each featurename 
                             feature = dic[f_name] 
                             prob_state_given_f = self.emissions[state][f_name][feature]
-                            prob += prob_prior * prob_transition * prob_state_given_f
+                            prob *= prob_state_given_f
                             #prob += math.log(abs(prob_prior * prob_transition * prob_state_given_f))
+                        prob *= prob_prior * prob_transition 
                         mapping.update({state2:prob}) # add each probability to mapping dictionary 
 
                     # most likely previous state 
@@ -246,12 +248,17 @@ class StrokeLabeler:
         classified = []         # classified = a list with classifications
 
         for sketchFile in sketchFiles:
-            print "Classifying " + sketchFile
             # Fetch true values
-            true.extend(self.loadLabeledFile(sketchFile)[1])
+            true_single = self.loadLabeledFile(sketchFile)[1]            
+
             # Classify 
-            strokes = self.loadStrokeFile(sketchFile)       # Load strokes
-            classified.extend(self.labelStrokes(strokes))   # Classify strokes
+            strokes = self.loadStrokeFile(sketchFile)
+            classified_single = self.labelStrokes(strokes)
+
+            if (len(classified_single) == len(true_single)):
+                classified.extend(classified_single)
+                true.extend(true_single)
+                print classified_single
 
         matrix = self.confusion(true, classified)
 
@@ -264,8 +271,6 @@ class StrokeLabeler:
         drawing_as_text = 0
         text_as_text = 0
         text_as_drawing = 0
-        a = 0
-        b = 0
 
         for i in range(len(trueLabels)):
             if trueLabels[i] == "drawing" and classifications[i] == "drawing":
@@ -362,7 +367,6 @@ class StrokeLabeler:
         allStrokes = []
         allLabels = []
         for f in trainingFiles:
-            print "Loading file", f, "for training"
             strokes, labels = self.loadLabeledFile( f )
             allStrokes.append(strokes)
             allLabels.append(labels)
@@ -395,7 +399,7 @@ class StrokeLabeler:
         
         tFiles = [ trainingDir + "/" + f for f in goodList ] 
 
-        training = random.sample(set(tFiles), len(tFiles)/2)    # Randomly choose half of of the files to be for training
+        training = random.sample(set(tFiles), len(tFiles)/10*9)    # Randomly choose half of of the files to be for training
         testing = list(set(tFiles) - set(training))     # Find the difference between the two sets
 
         self.trainHMM(training)
@@ -414,9 +418,9 @@ class StrokeLabeler:
             strokes, labels = self.loadLabeledFile( sketchFile )
             for i in range(len(strokes)):
                 if (labels[i] == "drawing"):
-                    drawing.append(strokes[i].duration())
+                    drawing.append(strokes[i].length())
                 elif (labels[i] == "text"):
-                   text.append(strokes[i].duration())
+                   text.append(strokes[i].length())
 
         print drawing
         print text
@@ -582,7 +586,6 @@ class StrokeLabeler:
         ret.setPoints(points)
         return ret
                 
-
     def loadLabeledFile( self, filename ):
         ''' load the strokes and the labels for the strokes from a labeled file.
             return the strokes and the labels as a tuple (strokes, labels) '''
